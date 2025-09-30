@@ -171,7 +171,7 @@ BEGIN
 
 	--ADD DbHasSP FUNCTION
 
-	IF (NOT EXISTS ( SELECT 1
+	IF (NOT EXISTS ( SELECT 1 
 		FROM INFORMATION_SCHEMA.ROUTINES
 		WHERE Specific_schema = 'DBM'
 			AND specific_name = 'DbHasSP'
@@ -188,7 +188,7 @@ BEGIN
 				WHERE Specific_schema = @schema
 					AND specific_name = @name
 					AND Routine_Type = ''PROCEDURE''), 1, 0);
-			END;';
+			END;'; 
 	END
 
 
@@ -259,4 +259,22 @@ BEGIN
 --<<<<<<<<<<<<<<<***************>>>>>>>>>>>>>>>--
 -------------------------------------------------
 
+-- ADD Hub Table
+
+	IF (DBM.DBHasTable('eco', 'Hub') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [eco].[Hub]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [eco].[Hub]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[OwnerId] varchar(32) NOT NULL,
+				CONSTRAINT [PK_Hub] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+			) ON [PRIMARY];';
+
+	END -- IF (DBM.DBHasTable('eco', 'Hub') = 0)
 END
