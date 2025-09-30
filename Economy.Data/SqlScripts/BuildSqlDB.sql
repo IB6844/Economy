@@ -7,7 +7,7 @@ DECLARE @DatabaseName sysname = 'Economy';
 
 -- WARNING!!!!     WARNING!!!!     WARNING!!!!
 
--- setting of 1 will DROP the databasee and 
+-- setting of 1 will DROP the databasee and
 -- recrearte all data will be lost in the database
 
 DECLARE @DropAndRebuild int = 1;			-- 1 = true; 0 = false
@@ -19,7 +19,7 @@ DECLARE @DropAndRebuild int = 1;			-- 1 = true; 0 = false
 -- Major = 1 - Generations Number (non changing)
 -- Minor = 0 - feature changes/breaking changes (non resetting per major)
 -- Release = 0 - Publish (non resetting per major)
--- Revision = {x} - Commit/Build (non resetting per major) 
+-- Revision = {x} - Commit/Build (non resetting per major)
 
 DECLARE @VerMajor int = 1;
 DECLARE @VerMinor int = 0;
@@ -56,7 +56,7 @@ BEGIN
 		SET @cmd = N'CREATE DATABASE [' + @DatabaseName + '];';
 		EXECUTE sp_executesql @cmd
 	END
-	
+
 	USE [Economy]
 
 
@@ -260,6 +260,26 @@ BEGIN
 -------------------------------------------------
 
 -- ADD Hub Table
+
+IF (DBM.DBHasTable('CTL', 'User') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [CTL].[User]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [CTL].[User]
+			(
+				[Id] INT IDENTITY(1,1) NOT NULL,
+				[GoogleId] VARCHAR(64) UNIQUE NOT NULL,
+				[Email] VARCHAR(255) NOT NULL,
+				[Name] VARCHAR(255) NOT NULL,
+				[CreatedAt] DATETIME2 DEFAULT (SYSDATETIME()) NOT NULL,
+				[LastLogin] DATETIME2 DEFAULT (SYSDATETIME()) NOT NULL,
+				CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];';
+
+	END -- IF (DBM.DBHasTable('eco', 'Hub') = 0)
 
 	IF (DBM.DBHasTable('eco', 'Hub') = 0)
 	BEGIN
