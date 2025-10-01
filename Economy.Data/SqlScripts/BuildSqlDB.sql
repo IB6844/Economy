@@ -76,7 +76,7 @@ BEGIN
 
 		EXEC sp_executesql N'CREATE SCHEMA DBM AUTHORIZATION db_owner;';
 	END
- 
+
 	-- Control Schema
 	IF (NOT EXISTS (SELECT 1
 		FROM INFORMATION_SCHEMA.SCHEMATA
@@ -358,6 +358,28 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 
 	END -- IF (DBM.DBHasTable('org', 'Organization') = 0)
 
+	IF (DBM.DBHasTable('org', 'OrgRole') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[OrgRole]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[OrgRole]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[OrgId] int NOT NULL, 
+				CONSTRAINT [PK_OrgRole] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[OrgRole] WITH NOCHECK ADD CONSTRAINT [FK_OrgRole_Organization_OrgId] FOREIGN KEY([OrgId])
+				REFERENCES [org].[Organization] ([Id]);
+
+			ALTER TABLE [org].[OrgRole] CHECK CONSTRAINT [FK_OrgRole_Organization_OrgId];';
+
+	END -- IF (DBM.DBHasTable('org', 'OrgRole') = 0)
+
 	IF (DBM.DBHasTable('eco', 'Vault') = 0)
 	BEGIN
 		EXEC [DBM].[DbPrint] 'CREATE [eco].[Vault]'
@@ -380,4 +402,60 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [eco].[Vault] CHECK CONSTRAINT [FK_Vault_Organization_OrgId];';
 
 	END -- IF (DBM.DBHasTable('eco', 'Vault') = 0)
+
+	
+	IF (DBM.DBHasTable('org', 'VaultPermission') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[VaultPermission]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[VaultPermission]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[Name] nvarchar(64) NOT NULL,
+				[Description] nvarchar(512) NOT NULL,
+				CONSTRAINT [PK_VaultPermission] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];';
+
+	END -- IF (DBM.DBHasTable('org', 'VaultPermission') = 0)
+
+	IF (DBM.DBHasTable('org', 'LinkVaultPermission') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[LinkVaultPermission]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[LinkVaultPermission]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[VaultId] int NOT NULL,
+				[RoleId] int NOT NULL,
+				[PermissionId] int NOT NULL,
+				CONSTRAINT [PK_LinkVaultPermission] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+				
+				UNIQUE NONCLUSTERED ([VaultId] ASC, [RoleId] ASC, [PermissionId] ASC) 
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[LinkVaultPermission] WITH NOCHECK ADD CONSTRAINT [FK_Link_Vault_VaultId] FOREIGN KEY([VaultId])
+				REFERENCES [eco].[Vault] ([Id]);
+
+			ALTER TABLE [org].[LinkVaultPermission] CHECK CONSTRAINT [FK_Link_Vault_VaultId];
+			
+			ALTER TABLE [org].[LinkVaultPermission] WITH NOCHECK ADD CONSTRAINT [FK_Link_Role_RoleId] FOREIGN KEY([RoleId])
+				REFERENCES [org].[OrgRole] ([Id]);
+
+			ALTER TABLE [org].[LinkVaultPermission] CHECK CONSTRAINT [FK_Link_Role_RoleId]
+			
+			ALTER TABLE [org].[LinkVaultPermission] WITH NOCHECK ADD CONSTRAINT [FK_Link_Permission_PermissionId] FOREIGN KEY([PermissionId])
+				REFERENCES [org].[VaultPermission] ([Id]);
+
+			ALTER TABLE [org].[LinkVaultPermission] CHECK CONSTRAINT [FK_Link_Permission_PermissionId];';
+
+	END -- IF (DBM.DBHasTable('org', 'LinkVaultPermission') = 0)
 END 
