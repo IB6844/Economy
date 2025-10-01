@@ -290,11 +290,16 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			(
 				[Id] int IDENTITY(1,1) NOT NULL,
 				[RefId] uniqueIdentifier NOT NULL,
-				[OwnerId] varchar(32) NOT NULL,
+				[OwnerId] int NOT NULL,
 				CONSTRAINT [PK_Hub] PRIMARY KEY CLUSTERED ([Id] ASC)
 					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
 					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
-			) ON [PRIMARY];';
+			) ON [PRIMARY];
+			
+			ALTER TABLE [eco].[Hub] WITH NOCHECK ADD CONSTRAINT [FK_OwnerId_User_Id] FOREIGN KEY([OwnerId])
+				REFERENCES [CTL].[User] ([Id]);
+
+			ALTER TABLE [eco].[Hub] CHECK CONSTRAINT [FK_OwnerId_User_Id];';
 
 	END -- IF (DBM.DBHasTable('eco', 'Hub') = 0)
-END
+END 
