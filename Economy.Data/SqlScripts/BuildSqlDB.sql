@@ -327,7 +327,12 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [eco].[Member] WITH NOCHECK ADD CONSTRAINT [FK_Member_User_UserId] FOREIGN KEY([UserId])
 				REFERENCES [CTL].[User] ([Id]);
 
-			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_User_UserId];';
+			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_User_UserId];
+			
+			ALTER TABLE [eco].[Member] WITH NOCHECK ADD CONSTRAINT [FK_Member_Hub_HubId] FOREIGN KEY([HubId])
+				REFERENCES [CTL].[Hub] ([Id]);
+
+			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_Hub_HubId];';
 
 	END -- IF (DBM.DBHasTable('eco', 'Member') = 0)
 END 
