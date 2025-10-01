@@ -76,7 +76,7 @@ BEGIN
 
 		EXEC sp_executesql N'CREATE SCHEMA DBM AUTHORIZATION db_owner;';
 	END
-
+ 
 	-- Control Schema
 	IF (NOT EXISTS (SELECT 1
 		FROM INFORMATION_SCHEMA.SCHEMATA
@@ -279,7 +279,7 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 			) ON [PRIMARY];';
 
-	END -- IF (DBM.DBHasTable('eco', 'Hub') = 0)
+	END -- IF (DBM.DBHasTable('CTL', 'User') = 0)
 
 	IF (DBM.DBHasTable('eco', 'Hub') = 0)
 	BEGIN
@@ -296,10 +296,38 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
 			) ON [PRIMARY];
 			
-			ALTER TABLE [eco].[Hub] WITH NOCHECK ADD CONSTRAINT [FK_OwnerId_User_Id] FOREIGN KEY([OwnerId])
+			ALTER TABLE [eco].[Hub] WITH NOCHECK ADD CONSTRAINT [FK_Hub_User_UserId] FOREIGN KEY([OwnerId])
 				REFERENCES [CTL].[User] ([Id]);
 
-			ALTER TABLE [eco].[Hub] CHECK CONSTRAINT [FK_OwnerId_User_Id];';
+			ALTER TABLE [eco].[Hub] CHECK CONSTRAINT [FK_Hub_User_UserId];';
 
 	END -- IF (DBM.DBHasTable('eco', 'Hub') = 0)
+
+	IF (DBM.DBHasTable('eco', 'Member') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [eco].[Member]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [eco].[Member]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[UserId] int NOT NULL,
+				[HubId] int NOT NULL,
+				[Wallet] decimal(19,4) NOT NULL
+				CONSTRAINT [PK_Member] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+				
+				UNIQUE NONCLUSTERED ([UserId] ASC, [HubId] ASC) 
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+				) ON [PRIMARY];
+			
+			ALTER TABLE [eco].[Member] WITH NOCHECK ADD CONSTRAINT [FK_Member_User_UserId] FOREIGN KEY([UserId])
+				REFERENCES [CTL].[User] ([Id]);
+
+			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_User_UserId];';
+
+	END -- IF (DBM.DBHasTable('eco', 'Member') = 0)
 END 
