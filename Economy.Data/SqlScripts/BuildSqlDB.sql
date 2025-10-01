@@ -322,7 +322,7 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 				UNIQUE NONCLUSTERED ([UserId] ASC, [HubId] ASC) 
 					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
 					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
-				) ON [PRIMARY];
+			) ON [PRIMARY];
 			
 			ALTER TABLE [eco].[Member] WITH NOCHECK ADD CONSTRAINT [FK_Member_User_UserId] FOREIGN KEY([UserId])
 				REFERENCES [CTL].[User] ([Id]);
@@ -335,4 +335,26 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_Hub_HubId];';
 
 	END -- IF (DBM.DBHasTable('eco', 'Member') = 0)
+
+	IF (DBM.DBHasTable('org', 'Organization') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[Organization]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[Organization]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[OwnerId] int NOT NULL,
+				CONSTRAINT [PK_Organization] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[Organization] WITH NOCHECK ADD CONSTRAINT [FK_Organization_Member_MemberId] FOREIGN KEY([OwnerId])
+				REFERENCES [eco].[Member] ([Id]);
+
+			ALTER TABLE [org].[Organization] CHECK CONSTRAINT [FK_Member_User_UserId];';
+
+	END -- IF (DBM.DBHasTable('org', 'Organization') = 0)
 END 
