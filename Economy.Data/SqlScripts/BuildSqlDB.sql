@@ -330,7 +330,7 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_User_UserId];
 			
 			ALTER TABLE [eco].[Member] WITH NOCHECK ADD CONSTRAINT [FK_Member_Hub_HubId] FOREIGN KEY([HubId])
-				REFERENCES [CTL].[Hub] ([Id]);
+				REFERENCES [eco].[Hub] ([Id]);
 
 			ALTER TABLE [eco].[Member] CHECK CONSTRAINT [FK_Member_Hub_HubId];';
 
@@ -354,7 +354,30 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [org].[Organization] WITH NOCHECK ADD CONSTRAINT [FK_Organization_Member_MemberId] FOREIGN KEY([OwnerId])
 				REFERENCES [eco].[Member] ([Id]);
 
-			ALTER TABLE [org].[Organization] CHECK CONSTRAINT [FK_Member_User_UserId];';
+			ALTER TABLE [org].[Organization] CHECK CONSTRAINT [FK_Organization_Member_MemberId];';
 
 	END -- IF (DBM.DBHasTable('org', 'Organization') = 0)
+
+	IF (DBM.DBHasTable('eco', 'Vault') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [eco].[Vault]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [eco].[Vault]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[OrgId] int NOT NULL,
+				[Balance] decimal(19,4) NOT NULL,
+				CONSTRAINT [PK_Vault] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];
+			
+			ALTER TABLE [eco].[Vault] WITH NOCHECK ADD CONSTRAINT [FK_Vault_Organization_OrgId] FOREIGN KEY([OrgId])
+				REFERENCES [org].[Organization] ([Id]);
+
+			ALTER TABLE [eco].[Vault] CHECK CONSTRAINT [FK_Vault_Organization_OrgId];';
+
+	END -- IF (DBM.DBHasTable('eco', 'Vault') = 0)
 END 
