@@ -532,4 +532,33 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [org].[LinkVaultPermission] CHECK CONSTRAINT [FK_Link_Permission_PermissionId];';
 
 	END -- IF (DBM.DBHasTable('org', 'LinkVaultPermission') = 0)
+
+		IF (DBM.DBHasTable('org', 'ShopItem') = 0) --Name, Description, CashDesticantion, Price
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[ShopItem]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[ShopItem]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[Name] nvarchar(64) NOT NULL,
+				[Description] nvarchar(512) NOT NULL,
+				[VaultId] int NOT NULL,
+				[Price] decimal(19,4) NOT NULL,
+				CONSTRAINT [PK_LinkVaultPermission] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+				
+				UNIQUE NONCLUSTERED ([VaultId] ASC, [RoleId] ASC, [PermissionId] ASC) 
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, 
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[ShopItem] WITH NOCHECK ADD CONSTRAINT [FK_ShopItem_Vault_VaultId] FOREIGN KEY([VaultId])
+				REFERENCES [eco].[Vault] ([Id]);
+
+			ALTER TABLE [org].[ShopItem] CHECK CONSTRAINT [FK_ShopItem_Vault_VaultId];';
+
+	END -- IF (DBM.DBHasTable('org', 'LinkVaultPermission') = 0)
 END 
