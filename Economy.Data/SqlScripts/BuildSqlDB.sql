@@ -380,6 +380,35 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 
 	END -- IF (DBM.DBHasTable('org', 'OrgRole') = 0)
 
+	IF (DBM.DBHasTable('org', 'OrgEmployee') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[OrgEmployee]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[OrgEmployee]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[MemberId] int NOT NULL, 
+				[RoleId] int NOT NULL, 
+				CONSTRAINT [PK_OrgEmployee] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[OrgEmployee] WITH NOCHECK ADD CONSTRAINT [FK_OrgEmployee_Member_MemberId] FOREIGN KEY([MemberId])
+				REFERENCES [eco].[Member] ([Id]);
+
+			ALTER TABLE [org].[OrgEmployee] CHECK CONSTRAINT [FK_OrgEmployee_Member_MemberId];
+			
+			ALTER TABLE [org].[OrgEmployee] WITH NOCHECK ADD CONSTRAINT [FK_OrgEmployee_OrgRole_RoleId] FOREIGN KEY([MemberId])
+				REFERENCES [org].[OrgRole] ([Id]);
+
+			ALTER TABLE [org].[OrgEmployee] CHECK CONSTRAINT [FK_OrgEmployee_OrgRole_RoleId];';
+
+	END -- IF (DBM.DBHasTable('org', 'OrgRole') = 0)
+
+
 	IF (DBM.DBHasTable('org', 'OrgPermission') = 0)
 	BEGIN
 		EXEC [DBM].[DbPrint] 'CREATE [org].[OrgPermission]'
