@@ -80,7 +80,7 @@ BEGIN
 	-- Control Schema
 	IF (NOT EXISTS (SELECT 1
 		FROM INFORMATION_SCHEMA.SCHEMATA
-		WHERE SCHEMA_NAME = 'CTL'))
+		WHERE SCHEMA_NAME = 'CTL')) 
 	BEGIN
 		PRINT 'CREATE SCHEMA CTL';
 
@@ -560,5 +560,5 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 
 			ALTER TABLE [org].[ShopItem] CHECK CONSTRAINT [FK_ShopItem_Vault_VaultId];';
 
-	END -- IF (DBM.DBHasTable('org', 'LinkVaultPermission') = 0)
+	END -- IF (DBM.DBHasTable('org', 'ShopItem') = 0)
 END 
