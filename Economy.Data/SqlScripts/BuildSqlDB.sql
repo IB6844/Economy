@@ -72,7 +72,7 @@ BEGIN
 		FROM INFORMATION_SCHEMA.SCHEMATA
 		WHERE SCHEMA_NAME = 'DBM'))
 	BEGIN
-		PRINT 'CREATE SCHEMA DBM';
+		PRINT 'CREATE SCHEMA DBM'; 
 
 		EXEC sp_executesql N'CREATE SCHEMA DBM AUTHORIZATION db_owner;';
 	END
@@ -379,6 +379,51 @@ IF (DBM.DBHasTable('CTL', 'User') = 0)
 			ALTER TABLE [org].[OrgRole] CHECK CONSTRAINT [FK_OrgRole_Organization_OrgId];';
 
 	END -- IF (DBM.DBHasTable('org', 'OrgRole') = 0)
+
+	IF (DBM.DBHasTable('org', 'OrgPermission') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[OrgPermission]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[OrgPermission]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[Name] nvarchar(64) NOT NULL,
+				[Description] nvarchar(512) NOT NULL,
+				CONSTRAINT [PK_OrgPermission] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];';
+
+	END -- IF (DBM.DBHasTable('org', 'LinkRolePermission') = 0)
+
+	IF (DBM.DBHasTable('org', 'LinkRolePermission') = 0)
+	BEGIN
+		EXEC [DBM].[DbPrint] 'CREATE [org].[LinkRolePermission]'
+		
+		EXEC sp_executesql N'
+			CREATE TABLE [org].[LinkRolePermission]
+			(
+				[Id] int IDENTITY(1,1) NOT NULL,
+				[RefId] uniqueIdentifier NOT NULL,
+				[RoleId] int NOT NULL, 
+				[PermissionId] int NOT NULL, 
+				CONSTRAINT [PK_LinkRolePermission] PRIMARY KEY CLUSTERED ([Id] ASC)
+					WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF,
+					ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+			) ON [PRIMARY];
+			
+			ALTER TABLE [org].[LinkRolePermission] WITH NOCHECK ADD CONSTRAINT [FK_Link_OrgRole_RoleId] FOREIGN KEY([RoleId])
+				REFERENCES [org].[OrgRole] ([Id]);
+
+			ALTER TABLE [org].[LinkRolePermission] CHECK CONSTRAINT [FK_Link_OrgRole_RoleId];
+			
+			ALTER TABLE [org].[LinkRolePermission] WITH NOCHECK ADD CONSTRAINT [FK_Link_OrgPermission_PermissionId] FOREIGN KEY([PermissionId])
+				REFERENCES [org].[OrgPermission] ([Id]);
+
+			ALTER TABLE [org].[LinkRolePermission] CHECK CONSTRAINT [FK_Link_OrgPermission_PermissionId];';
+
+	END -- IF (DBM.DBHasTable('org', 'LinkRolePermission') = 0)
 
 	IF (DBM.DBHasTable('eco', 'Vault') = 0)
 	BEGIN
